@@ -13,6 +13,8 @@ const todos = [{
 {
   _id: new ObjectID(),
   text: 'Second test todo',
+  completed: true,
+  completedAt: 333,
 }];
 
 beforeEach((done) => {
@@ -106,18 +108,24 @@ describe('GET /todos/:id', () => {
 describe('DELETE /todos/:id', () => {
   it('should return the id of todo', (done) => {
     request(app)
-      .get(`/todos/${todos[0]._id.toHexString()}`)
+      .delete(`/todos/${todos[0]._id.toHexString()}`)
       .expect(200)
       .expect((res) => {
         expect(res.body.todo.text).toBe(todos[0].text);
-        request(app)
-          .get('/todos')
-          .expect(200)
-          .expect((res) => {
-            expect(res.body.todos.length).toBe(1);
-          });
       })
-      .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        Todo.findById(todos[0]._id.toHexString()).then((todo) => {
+          console.log(todo);
+          expect(todo).toNotExist();
+          done();
+        }).catch((e) => done(e));
+        request(app)
+          .get(`/todos/${todos[0]._id.toHexString()}`)
+          .expect(404);
+      });
   });
   it('should return the 404 for not existing id', (done) => {
     const fakeId = new ObjectID();
@@ -131,6 +139,25 @@ describe('DELETE /todos/:id', () => {
     request(app)
       .get(`/todos/${fakeId}`)
       .expect(404)
+      .end(done);
+  });
+});
+describe('PATCH /todos/:id', () => {
+  it('should update the todo', (done) => {
+    const id = todos[0]._id.toHexString();
+    const textUpdate = 'Update';
+    request(app)
+      .patch(`/todos/${id}`)
+      .send({
+        completed:true,
+        text: textUpdate,
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(textUpdate);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA('number');
+      })
       .end(done);
   });
 });
