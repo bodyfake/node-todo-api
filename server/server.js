@@ -1,4 +1,5 @@
 require('./config/config');
+
 const { ObjectID } = require('mongodb');
 
 const express = require('express');
@@ -14,7 +15,7 @@ const { User } = require('./models/user');
 const app = express();
 const port = process.env.PORT;
 
-app.use(bodyParser.json());
+app.use(bodyParser.json());d
 
 app.post('/todos', (req, res) => {
   const todo = new Todo({
