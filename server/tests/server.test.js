@@ -13,8 +13,14 @@ const todos = [{
 
 beforeEach((done) => {
   Todo.remove({}).then(() => {
-    return Todo.insertMany(todos);
-  }).then(() => done());
+    Todo.insertMany(todos);
+  }).then((result) => {
+    const id = Todo.findOne({
+      text: 'First test todo',
+    });
+    console.log(id);
+    done();
+  });
 });
 
 describe('POST /todos', () => {
@@ -59,6 +65,15 @@ describe('POST /todos', () => {
 
 describe('GET /todos', () => {
   it('should get all todo', (done) => {
+    request(app)
+      .get('/todos')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todos.length).toBe(2);
+      })
+      .end(done);
+  });
+  it('should get a todo by id', (done) => {
     request(app)
       .get('/todos')
       .expect(200)
